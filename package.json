@@ -28,7 +28,7 @@
     "start": "parcel watch src/manifest.json --host localhost --target webext-dev",
     "build": "rm -rf dist-prod && parcel build src/manifest.json --no-source-maps --target webext-prod",
     "browser": "web-ext run -s dist-dev/",
-    "replace-version": "sed -i 's/\"version\": *\"0\"/\"version\": \"'\"$npm_package_version\"'\"/' dist-prod/manifest.json",
+    "replace-version": "node scripts/set-manifest-version.mjs",
     "postbuild": "npm run replace-version && web-ext build -s ./dist-prod --overwrite-dest",
     "release": "standard-version --no-verify",
     "lint": "eslint src",
