@@ -18,6 +18,14 @@ const createContextMenu = async (): Promise<void> => {
     }
 };
 
+// removeAll and create are awaited apart, so two overlapping rebuilds can both clear before
+// either creates, and the second run then fails on ids the first already added.
+let contextMenuUpdate = Promise.resolve();
+
+const queueContextMenuUpdate = () => {
+    contextMenuUpdate = contextMenuUpdate.then(createContextMenu).catch(handleUncaught);
+};
+
 const contextMenuIdRegexp = /^send-to-torrent-client-(\d+)$/;
 
 const legacyProfileSchema = z.object({
@@ -51,11 +59,8 @@ export default defineBackground({
     persistent: true,
 
     main() {
-        browser.storage.onChanged.addListener(() => {
-            createContextMenu().catch(handleUncaught);
-        });
-
-        createContextMenu().catch(handleUncaught);
+        browser.storage.onChanged.addListener(queueContextMenuUpdate);
+        queueContextMenuUpdate();
 
         browser.contextMenus.onClicked.addListener((info) => {
             if (typeof info.menuItemId !== "string" || !info.linkUrl) {
