@@ -69,7 +69,7 @@ browser.runtime.onInstalled.addListener((details) => {
     (async () => {
         const legacyProfiles = await browser.storage.local.get();
 
-        for (const [name, legacyProfile] of Object.keys(legacyProfiles)) {
+        for (const [name, legacyProfile] of Object.entries(legacyProfiles)) {
             const parseResult = legacyProfileSchema.safeParse(legacyProfile);
 
             if (parseResult.success) {
