@@ -9,6 +9,8 @@
         "declaration": false,
         "noImplicitAny": true,
         "strictNullChecks": true,
-        "importsNotUsedAsValues": "error"
+        "module": "esnext",
+        "moduleResolution": "bundler",
+        "verbatimModuleSyntax": true
     }
 }

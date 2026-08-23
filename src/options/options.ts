@@ -1,26 +1,26 @@
-import {browser} from 'webextension-polyfill-ts';
-import type {ClientName} from '../background/client';
-import type {Profile} from '../background/profiles';
+import { browser } from "webextension-polyfill-ts";
+import type { ClientName } from "../background/client";
+import type { Profile } from "../background/profiles";
 
-const form = document.querySelector('#form') as HTMLFormElement;
-const profileSelect = document.querySelector('#profiles') as HTMLSelectElement;
-const nameInput = document.querySelector('#name') as HTMLInputElement;
-const clientSelect = document.querySelector('#client') as HTMLSelectElement;
-const urlInput = document.querySelector('#url') as HTMLInputElement;
-const usernameInput = document.querySelector('#username') as HTMLInputElement;
-const passwordInput = document.querySelector('#password') as HTMLInputElement;
-const handleLeftClickCheckbox = document.querySelector('#handleLeftClick') as HTMLInputElement;
-const autostartCheckbox = document.querySelector('#autostart') as HTMLInputElement;
-const testButton = document.querySelector('#test') as HTMLButtonElement;
-const removeButton = document.querySelector('#remove') as HTMLButtonElement;
-const passwordToggleButton = document.querySelector('#passwordToggle') as HTMLButtonElement;
-const newButton = document.querySelector('#new') as HTMLButtonElement;
+const form = document.querySelector("#form") as HTMLFormElement;
+const profileSelect = document.querySelector("#profiles") as HTMLSelectElement;
+const nameInput = document.querySelector("#name") as HTMLInputElement;
+const clientSelect = document.querySelector("#client") as HTMLSelectElement;
+const urlInput = document.querySelector("#url") as HTMLInputElement;
+const usernameInput = document.querySelector("#username") as HTMLInputElement;
+const passwordInput = document.querySelector("#password") as HTMLInputElement;
+const handleLeftClickCheckbox = document.querySelector("#handleLeftClick") as HTMLInputElement;
+const autostartCheckbox = document.querySelector("#autostart") as HTMLInputElement;
+const testButton = document.querySelector("#test") as HTMLButtonElement;
+const removeButton = document.querySelector("#remove") as HTMLButtonElement;
+const passwordToggleButton = document.querySelector("#passwordToggle") as HTMLButtonElement;
+const newButton = document.querySelector("#new") as HTMLButtonElement;
 
-let profiles : Profile[] = [];
-let currentProfile : Profile | undefined = undefined;
+let profiles: Profile[] = [];
+let currentProfile: Profile | undefined;
 
 const loadProfiles = async () => {
-    const storage = await browser.storage.local.get('profiles');
+    const storage = await browser.storage.local.get("profiles");
     profiles = (storage.profiles ?? []) as Profile[];
 
     profileSelect.length = 0;
@@ -31,26 +31,26 @@ const loadProfiles = async () => {
 };
 
 const updateUsernameInput = () => {
-    usernameInput.disabled = (clientSelect.value === 'deluge');
+    usernameInput.disabled = clientSelect.value === "deluge";
 };
 
-clientSelect.addEventListener('change', () => {
+clientSelect.addEventListener("change", () => {
     updateUsernameInput();
 });
 
-const selectProfile = (profileId : number | undefined) => {
-    currentProfile = profileId ? profiles.find(profile => profile.id === profileId) : undefined;
-    profileSelect.value = currentProfile ? currentProfile.id.toString() : '';
-    form.classList.remove('was-validated');
+const selectProfile = (profileId: number | undefined) => {
+    currentProfile = profileId ? profiles.find((profile) => profile.id === profileId) : undefined;
+    profileSelect.value = currentProfile ? currentProfile.id.toString() : "";
+    form.classList.remove("was-validated");
 
     nameInput.focus();
 
     if (!currentProfile) {
-        nameInput.value = '';
+        nameInput.value = "";
         clientSelect.value = clientSelect.options[0].value;
-        urlInput.value = '';
-        usernameInput.value = '';
-        passwordInput.value = '';
+        urlInput.value = "";
+        usernameInput.value = "";
+        passwordInput.value = "";
         handleLeftClickCheckbox.checked = false;
         autostartCheckbox.checked = false;
         testButton.disabled = true;
@@ -70,28 +70,32 @@ const selectProfile = (profileId : number | undefined) => {
     removeButton.disabled = false;
 };
 
-loadProfiles().then(() => {
-    selectProfile(profiles[0]?.id);
-}).catch(error => {
-    console.error(error);
-});
+loadProfiles()
+    .then(() => {
+        selectProfile(profiles[0]?.id);
+    })
+    .catch((error) => {
+        console.error(error);
+    });
 
-profileSelect.addEventListener('change', () => {
-    const profileId = parseInt(profileSelect.value, 10);
+profileSelect.addEventListener("change", () => {
+    const profileId = Number.parseInt(profileSelect.value, 10);
     selectProfile(profileId);
 });
 
 browser.storage.onChanged.addListener(() => {
-    loadProfiles().then(() => {
-        if (currentProfile) {
-            selectProfile(currentProfile.id);
-        }
-    }).catch(error => {
-        console.error(error);
-    });
+    loadProfiles()
+        .then(() => {
+            if (currentProfile) {
+                selectProfile(currentProfile.id);
+            }
+        })
+        .catch((error) => {
+            console.error(error);
+        });
 });
 
-const getNewId = () : number => {
+const getNewId = (): number => {
     let id = 1;
 
     for (const profile of profiles) {
@@ -102,12 +106,12 @@ const getNewId = () : number => {
 };
 
 const saveProfiles = () => {
-    browser.storage.local.set({profiles}).catch(error => {
+    browser.storage.local.set({ profiles }).catch((error) => {
         console.error(error);
     });
 };
 
-form.addEventListener('submit', event => {
+form.addEventListener("submit", (event) => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -117,7 +121,7 @@ form.addEventListener('submit', event => {
     const isValid = form.checkValidity();
 
     if (!isValid) {
-        form.classList.add('was-validated');
+        form.classList.add("was-validated");
         return;
     }
 
@@ -133,7 +137,9 @@ form.addEventListener('submit', event => {
     };
 
     if (currentProfile) {
-        profiles = profiles.map(existingProfile => existingProfile.id === profile.id ? profile : existingProfile);
+        profiles = profiles.map((existingProfile) =>
+            existingProfile.id === profile.id ? profile : existingProfile,
+        );
     } else {
         profiles.push(profile);
     }
@@ -141,37 +147,37 @@ form.addEventListener('submit', event => {
     saveProfiles();
 });
 
-testButton.addEventListener('click', () => {
+testButton.addEventListener("click", () => {
     if (!currentProfile) {
         return;
     }
 
-    browser.runtime.sendMessage({test: currentProfile}).catch(error => {
+    browser.runtime.sendMessage({ test: currentProfile }).catch((error) => {
         console.error(error);
     });
 });
 
-removeButton.addEventListener('click', () => {
+removeButton.addEventListener("click", () => {
     if (!currentProfile) {
         return;
     }
 
-    profiles = profiles.filter(profile => profile.id !== currentProfile?.id);
+    profiles = profiles.filter((profile) => profile.id !== currentProfile?.id);
     currentProfile = undefined;
     saveProfiles();
 });
 
-passwordToggleButton.addEventListener('click', () => {
-    if (passwordInput.type === 'text') {
-        passwordInput.type = 'password';
-        passwordToggleButton.innerText = 'Show';
+passwordToggleButton.addEventListener("click", () => {
+    if (passwordInput.type === "text") {
+        passwordInput.type = "password";
+        passwordToggleButton.innerText = "Show";
     } else {
-        passwordInput.type = 'text';
-        passwordToggleButton.innerText = 'Hide';
+        passwordInput.type = "text";
+        passwordToggleButton.innerText = "Hide";
     }
 });
 
-newButton.addEventListener('click', () => {
-    profileSelect.value = '';
+newButton.addEventListener("click", () => {
+    profileSelect.value = "";
     selectProfile(undefined);
 });

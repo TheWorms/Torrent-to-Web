@@ -27,8 +27,11 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint
-        run: pnpm run lint
+      - name: Biome CI
+        run: pnpm biome ci .
 
-      - name: build
+      - name: Type Check
+        run: pnpm tsc --noEmit
+
+      - name: Build
         run: pnpm run build

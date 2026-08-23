@@ -24,9 +24,7 @@
         "page": "options/options.html"
     },
     "background": {
-        "scripts": [
-            "background/main.ts"
-        ]
+        "scripts": ["background/main.ts"]
     },
     "content_scripts": [
         {
@@ -34,7 +32,5 @@
             "js": ["content/capture-magnet-links.ts"]
         }
     ],
-    "web_accessible_resources": [
-        "icons/error.png"
-    ]
+    "web_accessible_resources": ["icons/error.png"]
 }

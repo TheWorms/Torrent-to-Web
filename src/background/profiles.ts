@@ -1,6 +1,6 @@
-import {browser} from 'webextension-polyfill-ts';
-import {z} from 'zod';
-import {clientNames} from './client';
+import { browser } from "webextension-polyfill-ts";
+import { z } from "zod";
+import { clientNames } from "./client";
 
 const profileSchema = z.object({
     id: z.number().int().positive(),
@@ -17,8 +17,8 @@ const profilesSchema = profileSchema.array();
 
 export type Profile = z.infer<typeof profileSchema>;
 
-export const getProfiles = async () : Promise<Profile[]> => {
-    const storage = await browser.storage.local.get('profiles');
+export const getProfiles = async (): Promise<Profile[]> => {
+    const storage = await browser.storage.local.get("profiles");
 
     if (!Array.isArray(storage.profiles)) {
         return [];

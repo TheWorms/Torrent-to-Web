@@ -1,18 +1,18 @@
-import Deluge from './deluge';
-import QBittorrent from './qbittorrent';
-import RuTorrent from './ruTorrent';
-import Transmission from './transmission';
+import Deluge from "./deluge";
+import QBittorrent from "./qbittorrent";
+import RuTorrent from "./ruTorrent";
+import Transmission from "./transmission";
 
 export type ClientConfig = {
-    url : string;
-    username : string;
-    password : string;
-    autostart : boolean;
+    url: string;
+    username: string;
+    password: string;
+    autostart: boolean;
 };
 
 export type Client = {
-    sendTorrent : (filename : string, torrent : Blob) => Promise<void>;
-    sendMagnetUrl : (url : string) => Promise<void>;
+    sendTorrent: (filename: string, torrent: Blob) => Promise<void>;
+    sendMagnetUrl: (url: string) => Promise<void>;
 };
 
 export const clients = {

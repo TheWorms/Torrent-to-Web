@@ -1,9 +1,9 @@
-import {browser} from 'webextension-polyfill-ts';
+import { browser } from "webextension-polyfill-ts";
 
-window.addEventListener('click', event => {
+window.addEventListener("click", (event) => {
     let target = event.target as HTMLElement;
 
-    while ((!(target instanceof HTMLAnchorElement) || !target.href) && target.parentElement) {
+    while (!(target instanceof HTMLAnchorElement && target.href) && target.parentElement) {
         target = target.parentElement;
     }
 
@@ -11,11 +11,11 @@ window.addEventListener('click', event => {
         return;
     }
 
-    if (target.href.startsWith('magnet:')) {
+    if (target.href.startsWith("magnet:")) {
         event.stopPropagation();
         event.preventDefault();
 
-        browser.runtime.sendMessage({magnetUrl: target.href}).catch(error => {
+        browser.runtime.sendMessage({ magnetUrl: target.href }).catch((error) => {
             console.error(error);
         });
     }

@@ -1,7 +1,7 @@
-type BencodeItem = string | number | BencodeItem[] | {[key : string] : BencodeItem};
+type BencodeItem = string | number | BencodeItem[] | { [key: string]: BencodeItem };
 
 class Decoder {
-    private readonly data : Uint8Array;
+    private readonly data: Uint8Array;
     private position = 0;
 
     private readonly integerStart = 0x69;
@@ -10,15 +10,15 @@ class Decoder {
     private readonly listStart = 0x6c;
     private readonly endOfType = 0x65;
 
-    public constructor(data : Uint8Array) {
+    public constructor(data: Uint8Array) {
         this.data = data;
     }
 
-    public decode() : BencodeItem {
+    public decode(): BencodeItem {
         return this.next();
     }
 
-    private next() : BencodeItem {
+    private next(): BencodeItem {
         switch (this.data[this.position]) {
             case this.dictionaryStart:
                 return this.dictionary();
@@ -34,9 +34,9 @@ class Decoder {
         }
     }
 
-    private dictionary() : Record<string, BencodeItem> {
+    private dictionary(): Record<string, BencodeItem> {
         ++this.position;
-        const dictionary : Record<string, BencodeItem> = {};
+        const dictionary: Record<string, BencodeItem> = {};
 
         while (this.data[this.position] !== this.endOfType) {
             dictionary[this.buffer()] = this.next();
@@ -46,9 +46,9 @@ class Decoder {
         return dictionary;
     }
 
-    private list() : BencodeItem[] {
+    private list(): BencodeItem[] {
         ++this.position;
-        const list : BencodeItem[] = [];
+        const list: BencodeItem[] = [];
 
         while (this.data[this.position] !== this.endOfType) {
             list.push(this.next());
@@ -58,14 +58,14 @@ class Decoder {
         return list;
     }
 
-    private integer() : number {
+    private integer(): number {
         const end = this.find(this.endOfType);
         const number = this.getInt(this.position + 1, end);
         this.position += end + 1 - this.position;
         return number;
     }
 
-    private buffer() : string {
+    private buffer(): string {
         let separatorPosition = this.find(this.stringDelimiter);
         const length = this.getInt(this.position, separatorPosition);
         const end = ++separatorPosition + length;
@@ -74,7 +74,7 @@ class Decoder {
         return this.toString(this.data.slice(separatorPosition, end));
     }
 
-    private find(character : number) : number {
+    private find(character: number): number {
         let position = this.position;
 
         while (position < this.data.length) {
@@ -90,26 +90,38 @@ class Decoder {
         );
     }
 
-    private toString(data : Uint8Array) : string {
-        let result = '';
+    private toString(data: Uint8Array): string {
+        let result = "";
         let position = 0;
 
         while (position < data.length) {
             const character = data[position++];
 
             switch (character >> 4) {
-                case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
                     result += String.fromCharCode(character);
                     break;
 
-                case 12: case 13:
-                    result += String.fromCharCode(((character & 0x1F) << 6) | (data[position++] & 0x3F));
+                case 12:
+                case 13:
+                    result += String.fromCharCode(
+                        ((character & 0x1f) << 6) | (data[position++] & 0x3f),
+                    );
                     break;
 
                 case 14:
-                    result += String.fromCharCode(((character & 0x0F) << 12)
-                        | ((data[position++] & 0x3F) << 6)
-                        | ((data[position++] & 0x3F) << 0));
+                    result += String.fromCharCode(
+                        ((character & 0x0f) << 12) |
+                            ((data[position++] & 0x3f) << 6) |
+                            ((data[position++] & 0x3f) << 0),
+                    );
                     break;
             }
         }
@@ -117,7 +129,7 @@ class Decoder {
         return result;
     }
 
-    private getInt(start : number, end : number) : number {
+    private getInt(start: number, end: number): number {
         let sum = 0;
         let sign = 1;
 
@@ -152,6 +164,6 @@ class Decoder {
     }
 }
 
-export const decode = (data : Uint8Array) : BencodeItem => {
+export const decode = (data: Uint8Array): BencodeItem => {
     return new Decoder(data).decode();
 };

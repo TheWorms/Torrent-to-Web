@@ -1,36 +1,36 @@
-import {fetchExtractCookies, fetchWithCookies, spoofOrigin} from './utils';
-import type {Client, ClientConfig} from './index';
+import type { Client, ClientConfig } from "./index";
+import { fetchExtractCookies, fetchWithCookies, spoofOrigin } from "./utils";
 
 export default class QBittorrent implements Client {
-    private readonly config : ClientConfig;
+    private readonly config: ClientConfig;
 
-    public constructor(config : ClientConfig) {
+    public constructor(config: ClientConfig) {
         this.config = config;
     }
 
-    public async sendTorrent(filename : string, torrent : Blob) : Promise<void> {
+    public async sendTorrent(filename: string, torrent: Blob): Promise<void> {
         const formData = new FormData();
-        formData.set('torrents', torrent, filename);
+        formData.set("torrents", torrent, filename);
 
         if (!this.config.autostart) {
-            formData.set('paused', 'true');
+            formData.set("paused", "true");
         }
 
         return this.sendRequest(formData);
     }
 
-    public async sendMagnetUrl(url : string) : Promise<void> {
+    public async sendMagnetUrl(url: string): Promise<void> {
         const formData = new FormData();
-        formData.set('urls', `${url}\n`);
+        formData.set("urls", `${url}\n`);
 
         if (!this.config.autostart) {
-            formData.set('paused', 'true');
+            formData.set("paused", "true");
         }
 
         return this.sendRequest(formData);
     }
 
-    private async sendRequest(formData : FormData) : Promise<void> {
+    private async sendRequest(formData: FormData): Promise<void> {
         const origin = new URL(this.config.url);
 
         await spoofOrigin(
@@ -38,42 +38,44 @@ export default class QBittorrent implements Client {
                 const cookies = await this.login();
 
                 const url = new URL(this.config.url);
-                url.pathname = url.pathname.replace(/\/$/, '') + '/api/v2/torrents/add';
+                url.pathname = `${url.pathname.replace(/\/$/, "")}/api/v2/torrents/add`;
 
-                const response = await fetchWithCookies(new Request(url.toString(), {
-                    method: 'POST',
-                    body: formData,
-                }), cookies);
+                const response = await fetchWithCookies(
+                    new Request(url.toString(), {
+                        method: "POST",
+                        body: formData,
+                    }),
+                    cookies,
+                );
 
                 if (!response.ok) {
-                    throw new Error('Request failed');
+                    throw new Error("Request failed");
                 }
             },
-            [
-                `${this.config.url}/api/v2/auth/login`,
-                `${this.config.url}/api/v2/torrents/add`,
-            ],
+            [`${this.config.url}/api/v2/auth/login`, `${this.config.url}/api/v2/torrents/add`],
             `${origin.protocol}//${origin.host}`,
         );
     }
 
-    private async login() : Promise<string> {
+    private async login(): Promise<string> {
         const url = new URL(this.config.url);
-        url.pathname = url.pathname.replace(/\/$/, '') + '/api/v2/auth/login';
+        url.pathname = `${url.pathname.replace(/\/$/, "")}/api/v2/auth/login`;
 
-        const [response, cookies] = await fetchExtractCookies(new Request(url.toString(), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-                username: this.config.username,
-                password: this.config.password,
+        const [response, cookies] = await fetchExtractCookies(
+            new Request(url.toString(), {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({
+                    username: this.config.username,
+                    password: this.config.password,
+                }),
             }),
-        }));
+        );
 
         if (!response.ok) {
-            throw new Error('Login failed');
+            throw new Error("Login failed");
         }
 
         return cookies;
