@@ -1,6 +1,9 @@
 import type { Client, ClientConfig } from "./index";
 import { fetchExtractCookies, fetchWithCookies, spoofOrigin } from "./utils";
 
+const loginPath = "/api/v2/auth/login";
+const addTorrentPath = "/api/v2/torrents/add";
+
 export class QBittorrent implements Client {
     private readonly config: ClientConfig;
 
@@ -30,18 +33,25 @@ export class QBittorrent implements Client {
         return this.sendRequest(formData);
     }
 
+    // The spoofOrigin patterns have to be built the same way as the requests they are meant to
+    // match, or the listener never fires and qBittorrent rejects the login on its CSRF check.
+    private apiUrl(path: string): string {
+        const url = new URL(this.config.url);
+        url.pathname = `${url.pathname.replace(/\/$/, "")}${path}`;
+        return url.toString();
+    }
+
     private async sendRequest(formData: FormData): Promise<void> {
         const origin = new URL(this.config.url);
+        const loginUrl = this.apiUrl(loginPath);
+        const addTorrentUrl = this.apiUrl(addTorrentPath);
 
         await spoofOrigin(
             async () => {
                 const cookies = await this.login();
 
-                const url = new URL(this.config.url);
-                url.pathname = `${url.pathname.replace(/\/$/, "")}/api/v2/torrents/add`;
-
                 const response = await fetchWithCookies(
-                    new Request(url.toString(), {
+                    new Request(addTorrentUrl, {
                         method: "POST",
                         body: formData,
                     }),
@@ -52,17 +62,14 @@ export class QBittorrent implements Client {
                     throw new Error("Request failed");
                 }
             },
-            [`${this.config.url}/api/v2/auth/login`, `${this.config.url}/api/v2/torrents/add`],
+            [loginUrl, addTorrentUrl],
             `${origin.protocol}//${origin.host}`,
         );
     }
 
     private async login(): Promise<string> {
-        const url = new URL(this.config.url);
-        url.pathname = `${url.pathname.replace(/\/$/, "")}/api/v2/auth/login`;
-
         const [response, cookies] = await fetchExtractCookies(
-            new Request(url.toString(), {
+            new Request(this.apiUrl(loginPath), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
