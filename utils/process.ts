@@ -54,6 +54,11 @@ const processMagnetUrl = async (url: string, profileId: number | undefined): Pro
         );
     }
 
+    if (clients.length === 0) {
+        await notification.error("No profile is set to handle magnet links");
+        return;
+    }
+
     for (const client of clients) {
         try {
             await client.sendMagnetUrl(url);

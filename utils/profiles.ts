@@ -16,6 +16,11 @@ const profilesSchema = profileSchema.array();
 
 export type Profile = z.infer<typeof profileSchema>;
 
+export const hasLeftClickProfile = async (): Promise<boolean> => {
+    const profiles = await getProfiles();
+    return profiles.some((profile) => profile.handleLeftClick);
+};
+
 export const getProfiles = async (): Promise<Profile[]> => {
     const storage = await browser.storage.local.get("profiles");
 
