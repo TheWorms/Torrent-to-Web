@@ -1,12 +1,11 @@
-import { browser } from "webextension-polyfill-ts";
 import { z } from "zod";
 import { clientNames } from "./client";
 
 const profileSchema = z.object({
-    id: z.number().int().positive(),
+    id: z.int().positive(),
     name: z.string(),
     client: z.enum(clientNames),
-    url: z.string().url(),
+    url: z.url(),
     username: z.string(),
     password: z.string(),
     autostart: z.boolean(),

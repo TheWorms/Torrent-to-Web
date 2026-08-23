@@ -1,6 +1,5 @@
-import { browser } from "webextension-polyfill-ts";
-import type { ClientName } from "../background/client";
-import type { Profile } from "../background/profiles";
+import "bootstrap/dist/css/bootstrap.min.css";
+import type { ClientName } from "../../utils/client";
 
 const form = document.querySelector("#form") as HTMLFormElement;
 const profileSelect = document.querySelector("#profiles") as HTMLSelectElement;
@@ -47,7 +46,7 @@ const selectProfile = (profileId: number | undefined) => {
 
     if (!currentProfile) {
         nameInput.value = "";
-        clientSelect.value = clientSelect.options[0].value;
+        clientSelect.selectedIndex = 0;
         urlInput.value = "";
         usernameInput.value = "";
         passwordInput.value = "";

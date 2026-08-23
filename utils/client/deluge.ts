@@ -2,7 +2,7 @@ import { encode } from "base64-arraybuffer";
 import type { Client, ClientConfig } from "./index";
 import { fetchExtractCookies, fetchWithCookies } from "./utils";
 
-export default class Deluge implements Client {
+export class Deluge implements Client {
     private readonly config: ClientConfig;
     private readonly url: URL;
 

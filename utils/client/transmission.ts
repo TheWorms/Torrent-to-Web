@@ -1,7 +1,7 @@
 import { encode } from "base64-arraybuffer";
 import type { Client, ClientConfig } from "./index";
 
-export default class Transmission implements Client {
+export class Transmission implements Client {
     private readonly config: ClientConfig;
 
     public constructor(config: ClientConfig) {

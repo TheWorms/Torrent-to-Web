@@ -2,8 +2,5 @@ sideEffectsCache: false
 
 allowBuilds:
   "@biomejs/biome": true
-  "@parcel/watcher": true
-  "@swc/core": true
+  esbuild: true
   lefthook: true
-  lmdb: true
-  msgpackr-extract: true

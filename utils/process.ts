@@ -3,7 +3,7 @@ import { decode } from "./bencode";
 import type { Client } from "./client";
 import { clients } from "./client";
 import { getProfiles } from "./profiles";
-import ProgressNotification from "./progressNotification";
+import { ProgressNotification } from "./progressNotification";
 
 const torrentSchema = z.object({
     info: z.object({

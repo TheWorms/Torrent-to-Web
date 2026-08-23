@@ -1,7 +1,7 @@
 import type { Client, ClientConfig } from "./index";
 import { fetchExtractCookies, fetchWithCookies, spoofOrigin } from "./utils";
 
-export default class QBittorrent implements Client {
+export class QBittorrent implements Client {
     private readonly config: ClientConfig;
 
     public constructor(config: ClientConfig) {

@@ -1,5 +1,4 @@
-import type { WebRequest } from "webextension-polyfill-ts";
-import { browser } from "webextension-polyfill-ts";
+import type { Browser } from "wxt/browser";
 
 const urlToPattern = (originalUrl: string) => {
     const url = new URL(originalUrl);
@@ -10,7 +9,7 @@ const urlToPattern = (originalUrl: string) => {
 export const fetchExtractCookies = async (request: Request): Promise<[Response, string]> => {
     let cookies = "";
 
-    const extractCookies = (details: WebRequest.OnHeadersReceivedDetailsType) => {
+    const extractCookies = (details: Browser.webRequest.OnHeadersReceivedDetails): undefined => {
         if (!details.responseHeaders) {
             return;
         }
@@ -36,7 +35,7 @@ export const fetchExtractCookies = async (request: Request): Promise<[Response, 
 };
 
 export const fetchWithCookies = async (request: Request, cookies: string): Promise<Response> => {
-    const injectCookies = (details: WebRequest.OnBeforeSendHeadersDetailsType) => {
+    const injectCookies = (details: Browser.webRequest.OnBeforeSendHeadersDetails) => {
         const headers = (details.requestHeaders ?? []).filter(
             (header) => header.name.toLowerCase() !== "cookie",
         );
@@ -62,7 +61,7 @@ export const spoofOrigin = async <T>(
     urls: string[],
     origin: string,
 ): Promise<T> => {
-    const spoofHeaders = (details: WebRequest.OnBeforeSendHeadersDetailsType) => {
+    const spoofHeaders = (details: Browser.webRequest.OnBeforeSendHeadersDetails) => {
         const headers = (details.requestHeaders ?? []).filter(
             (header) => !["origin", "referer"].includes(header.name.toLowerCase()),
         );

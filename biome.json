@@ -1,13 +1,19 @@
 {
     "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-    "assist": { "actions": { "source": { "organizeImports": "on" } } },
+    "assist": {
+        "actions": {
+            "source": {
+                "organizeImports": "on"
+            }
+        }
+    },
     "files": {
         "includes": [
             "biome.json",
             "commitlint.config.cjs",
-            "src/**/*",
-            "!src/icons",
-            "scripts/**/*"
+            "wxt.config.ts",
+            "entrypoints/**/*",
+            "utils/**/*"
         ]
     },
     "linter": {
@@ -41,14 +47,21 @@
                 "useNumberNamespace": "error",
                 "noInferrableTypes": "error",
                 "noUselessElse": "error",
-                "useConsistentArrayType": { "level": "error", "options": { "syntax": "shorthand" } }
+                "useConsistentArrayType": {
+                    "level": "error",
+                    "options": {
+                        "syntax": "shorthand"
+                    }
+                }
             },
             "suspicious": {
                 "noApproximativeNumericConstant": "warn",
                 "noEmptyBlockStatements": "error",
                 "noConsole": {
                     "level": "error",
-                    "options": { "allow": ["assert", "error", "info", "warn", "debug"] }
+                    "options": {
+                        "allow": ["assert", "error", "info", "warn", "debug"]
+                    }
                 }
             }
         }

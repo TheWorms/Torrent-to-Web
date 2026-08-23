@@ -94,8 +94,21 @@ class Decoder {
         let result = "";
         let position = 0;
 
+        // A missing continuation byte reads as undefined, and `undefined & 0x3f` is 0, so a
+        // truncated sequence would otherwise decode to a plausible but wrong character instead
+        // of failing.
+        const nextByte = (): number => {
+            const byte = data[position++];
+
+            if (byte === undefined) {
+                throw new Error("Invalid data: Truncated UTF-8 sequence");
+            }
+
+            return byte;
+        };
+
         while (position < data.length) {
-            const character = data[position++];
+            const character = nextByte();
 
             switch (character >> 4) {
                 case 0:
@@ -111,16 +124,14 @@ class Decoder {
 
                 case 12:
                 case 13:
-                    result += String.fromCharCode(
-                        ((character & 0x1f) << 6) | (data[position++] & 0x3f),
-                    );
+                    result += String.fromCharCode(((character & 0x1f) << 6) | (nextByte() & 0x3f));
                     break;
 
                 case 14:
                     result += String.fromCharCode(
                         ((character & 0x0f) << 12) |
-                            ((data[position++] & 0x3f) << 6) |
-                            ((data[position++] & 0x3f) << 0),
+                            ((nextByte() & 0x3f) << 6) |
+                            ((nextByte() & 0x3f) << 0),
                     );
                     break;
             }
@@ -135,6 +146,10 @@ class Decoder {
 
         for (let i = start; i < end; ++i) {
             const num = this.data[i];
+
+            if (num === undefined) {
+                throw new Error(`Invalid data: Unexpected end of input at index ${i}`);
+            }
 
             if (num < 58 && num >= 48) {
                 sum = sum * 10 + (num - 48);

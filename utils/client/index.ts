@@ -1,7 +1,7 @@
-import Deluge from "./deluge";
-import QBittorrent from "./qbittorrent";
-import RuTorrent from "./ruTorrent";
-import Transmission from "./transmission";
+import { Deluge } from "./deluge";
+import { QBittorrent } from "./qbittorrent";
+import { RuTorrent } from "./ruTorrent";
+import { Transmission } from "./transmission";
 
 export type ClientConfig = {
     url: string;

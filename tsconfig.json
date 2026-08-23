@@ -1,16 +1,6 @@
 {
-    "extends": "@tsconfig/recommended/tsconfig.json",
-    "exclude": ["node_modules"],
-    "include": ["src/**/*"],
+    "extends": "./.wxt/tsconfig.json",
     "compilerOptions": {
-        "lib": ["esnext", "dom"],
-        "target": "ES2015",
-        "outDir": "lib",
-        "declaration": false,
-        "noImplicitAny": true,
-        "strictNullChecks": true,
-        "module": "esnext",
-        "moduleResolution": "bundler",
         "verbatimModuleSyntax": true
     }
 }

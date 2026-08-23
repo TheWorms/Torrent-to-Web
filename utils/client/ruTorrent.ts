@@ -1,6 +1,6 @@
 import type { Client, ClientConfig } from "./index";
 
-export default class RuTorrent implements Client {
+export class RuTorrent implements Client {
     private readonly config: ClientConfig;
 
     public constructor(config: ClientConfig) {
