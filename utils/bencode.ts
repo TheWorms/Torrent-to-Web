@@ -134,6 +134,19 @@ class Decoder {
                             ((nextByte() & 0x3f) << 0),
                     );
                     break;
+
+                // Four byte sequences carry everything outside the basic plane, so this needs
+                // fromCodePoint rather than fromCharCode. Lead bytes of 0x80 to 0xbf still fall
+                // through and are skipped, because torrent names are not reliably utf-8 and
+                // rejecting them outright would fail uploads that currently succeed.
+                case 15:
+                    result += String.fromCodePoint(
+                        ((character & 0x07) << 18) |
+                            ((nextByte() & 0x3f) << 12) |
+                            ((nextByte() & 0x3f) << 6) |
+                            (nextByte() & 0x3f),
+                    );
+                    break;
             }
         }
 
