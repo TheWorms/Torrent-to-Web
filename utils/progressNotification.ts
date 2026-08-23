@@ -55,8 +55,6 @@ export class ProgressNotification {
             message: message,
         };
 
-        // Passing an explicit undefined id is rejected by the typings, so the two overloads have
-        // to be picked apart rather than relying on the argument being optional.
         return notificationId === undefined
             ? browser.notifications.create(options)
             : browser.notifications.create(notificationId, options);

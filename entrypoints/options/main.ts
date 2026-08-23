@@ -18,15 +18,18 @@ const newButton = document.querySelector("#new") as HTMLButtonElement;
 let profiles: Profile[] = [];
 let currentProfile: Profile | undefined;
 
-const loadProfiles = async () => {
-    const storage = await browser.storage.local.get("profiles");
-    profiles = (storage.profiles ?? []) as Profile[];
-
+const renderProfileOptions = () => {
     profileSelect.length = 0;
 
     for (const profile of profiles) {
         profileSelect.add(new Option(profile.name, profile.id.toString()));
     }
+};
+
+const loadProfiles = async () => {
+    const storage = await browser.storage.local.get("profiles");
+    profiles = (storage.profiles ?? []) as Profile[];
+    renderProfileOptions();
 };
 
 const updateUsernameInput = () => {
@@ -44,7 +47,17 @@ const selectProfile = (profileId: number | undefined) => {
 
     nameInput.focus();
 
-    if (!currentProfile) {
+    if (currentProfile) {
+        nameInput.value = currentProfile.name;
+        clientSelect.value = currentProfile.client;
+        urlInput.value = currentProfile.url;
+        usernameInput.value = currentProfile.username;
+        passwordInput.value = currentProfile.password;
+        handleLeftClickCheckbox.checked = currentProfile.handleLeftClick;
+        autostartCheckbox.checked = currentProfile.autostart;
+        testButton.disabled = false;
+        removeButton.disabled = false;
+    } else {
         nameInput.value = "";
         clientSelect.selectedIndex = 0;
         urlInput.value = "";
@@ -54,19 +67,11 @@ const selectProfile = (profileId: number | undefined) => {
         autostartCheckbox.checked = false;
         testButton.disabled = true;
         removeButton.disabled = true;
-        updateUsernameInput();
-        return;
     }
 
-    nameInput.value = currentProfile.name;
-    clientSelect.value = currentProfile.client;
-    urlInput.value = currentProfile.url;
-    usernameInput.value = currentProfile.username;
-    passwordInput.value = currentProfile.password;
-    handleLeftClickCheckbox.checked = currentProfile.handleLeftClick;
-    autostartCheckbox.checked = currentProfile.autostart;
-    testButton.disabled = false;
-    removeButton.disabled = false;
+    // Assigning clientSelect.value does not raise a change event, so the username state has to be
+    // brought along by hand on both paths.
+    updateUsernameInput();
 };
 
 loadProfiles()
@@ -144,6 +149,8 @@ form.addEventListener("submit", (event) => {
     }
 
     saveProfiles();
+    renderProfileOptions();
+    selectProfile(profile.id);
 });
 
 testButton.addEventListener("click", () => {
@@ -161,9 +168,12 @@ removeButton.addEventListener("click", () => {
         return;
     }
 
-    profiles = profiles.filter((profile) => profile.id !== currentProfile?.id);
-    currentProfile = undefined;
+    const removedId = currentProfile.id;
+    profiles = profiles.filter((profile) => profile.id !== removedId);
+
     saveProfiles();
+    renderProfileOptions();
+    selectProfile(undefined);
 });
 
 passwordToggleButton.addEventListener("click", () => {
