@@ -11,6 +11,7 @@
         "includes": [
             "biome.json",
             "commitlint.config.cjs",
+            "release-please-config.json",
             "wxt.config.ts",
             "entrypoints/**/*",
             "utils/**/*"
