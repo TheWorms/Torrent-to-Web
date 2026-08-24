@@ -10,10 +10,39 @@ const createContextMenu = async (): Promise<void> => {
     const profiles = await getProfiles();
 
     for (const profile of profiles) {
+        const parentId = `send-to-torrent-client-${profile.id}`;
+
         browser.contextMenus.create({
-            id: `send-to-torrent-client-${profile.id}`,
+            id: parentId,
             title: `Send torrent to ${profile.name}`,
             contexts: ["link"],
+        });
+
+        if (profile.labels.length === 0) {
+            continue;
+        }
+
+        browser.contextMenus.create({
+            id: `${parentId}-nolabel`,
+            parentId,
+            title: "No label",
+            contexts: ["link"],
+        });
+
+        browser.contextMenus.create({
+            id: `${parentId}-separator`,
+            parentId,
+            type: "separator",
+            contexts: ["link"],
+        });
+
+        profile.labels.forEach((label, index) => {
+            browser.contextMenus.create({
+                id: `${parentId}-label-${index}`,
+                parentId,
+                title: label,
+                contexts: ["link"],
+            });
         });
     }
 };
@@ -26,7 +55,7 @@ const queueContextMenuUpdate = () => {
     contextMenuUpdate = contextMenuUpdate.then(createContextMenu).catch(handleUncaught);
 };
 
-const contextMenuIdRegexp = /^send-to-torrent-client-(\d+)$/;
+const contextMenuIdRegexp = /^send-to-torrent-client-(\d+)(?:-nolabel|-label-(\d+))?$/;
 
 const legacyProfileSchema = z.object({
     nid: z.int().positive(),
@@ -67,16 +96,30 @@ export default defineBackground({
                 return;
             }
 
-            const [, profileIdText] = contextMenuIdRegexp.exec(info.menuItemId) ?? [];
+            const [, profileIdText, labelIndexText] =
+                contextMenuIdRegexp.exec(info.menuItemId) ?? [];
 
             if (profileIdText === undefined) {
                 return;
             }
 
+            const linkUrl = info.linkUrl;
             const profileId = Number.parseInt(profileIdText, 10);
             const referrer = info.frameUrl ?? info.pageUrl;
 
-            processUrl(info.linkUrl, referrer, profileId).catch(handleUncaught);
+            (async () => {
+                let label: string | undefined;
+
+                if (labelIndexText !== undefined) {
+                    const labelIndex = Number.parseInt(labelIndexText, 10);
+                    const profile = (await getProfiles()).find(
+                        (profile) => profile.id === profileId,
+                    );
+                    label = profile?.labels[labelIndex];
+                }
+
+                await processUrl(linkUrl, referrer, profileId, label);
+            })().catch(handleUncaught);
         });
 
         browser.runtime.onInstalled.addListener((details) => {
@@ -102,6 +145,7 @@ export default defineBackground({
                             password: parseResult.data.password,
                             autostart: parseResult.data.autostart,
                             handleLeftClick: parseResult.data.magnet,
+                            labels: [],
                         });
                     }
                 }

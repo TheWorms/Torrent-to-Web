@@ -1,4 +1,4 @@
-import type { Client, ClientConfig } from "./index";
+import type { Client, ClientConfig, SendOptions } from "./index";
 
 export class RuTorrent implements Client {
     private readonly config: ClientConfig;
@@ -7,26 +7,34 @@ export class RuTorrent implements Client {
         this.config = config;
     }
 
-    public async sendTorrent(filename: string, torrent: Blob): Promise<void> {
+    public async sendTorrent(
+        filename: string,
+        torrent: Blob,
+        options?: SendOptions,
+    ): Promise<void> {
         const formData = new FormData();
         formData.set("torrent_file", torrent, filename);
-
-        if (!this.config.autostart) {
-            formData.set("torrents_start_stopped", "1");
-        }
+        this.applyCommonFields(formData, options);
 
         return this.sendRequest(formData);
     }
 
-    public async sendMagnetUrl(url: string): Promise<void> {
+    public async sendMagnetUrl(url: string, options?: SendOptions): Promise<void> {
         const formData = new FormData();
         formData.set("url", url);
+        this.applyCommonFields(formData, options);
 
+        return this.sendRequest(formData);
+    }
+
+    private applyCommonFields(formData: FormData, options?: SendOptions): void {
         if (!this.config.autostart) {
             formData.set("torrents_start_stopped", "1");
         }
 
-        return this.sendRequest(formData);
+        if (options?.label) {
+            formData.set("label", options.label);
+        }
     }
 
     private async sendRequest(formData: FormData): Promise<void> {

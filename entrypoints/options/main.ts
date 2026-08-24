@@ -1,5 +1,6 @@
 import "bootstrap/dist/css/bootstrap.min.css";
 import type { ClientName } from "../../utils/client";
+import { labelCapableClients } from "../../utils/client";
 
 const form = document.querySelector("#form") as HTMLFormElement;
 const profileSelect = document.querySelector("#profiles") as HTMLSelectElement;
@@ -10,6 +11,8 @@ const usernameInput = document.querySelector("#username") as HTMLInputElement;
 const passwordInput = document.querySelector("#password") as HTMLInputElement;
 const handleLeftClickCheckbox = document.querySelector("#handleLeftClick") as HTMLInputElement;
 const autostartCheckbox = document.querySelector("#autostart") as HTMLInputElement;
+const labelsInput = document.querySelector("#labels") as HTMLInputElement;
+const labelsGroup = document.querySelector("#labelsGroup") as HTMLDivElement;
 const testButton = document.querySelector("#test") as HTMLButtonElement;
 const removeButton = document.querySelector("#remove") as HTMLButtonElement;
 const passwordToggleButton = document.querySelector("#passwordToggle") as HTMLButtonElement;
@@ -36,8 +39,29 @@ const updateUsernameInput = () => {
     usernameInput.disabled = clientSelect.value === "deluge";
 };
 
+const updateLabelsInput = () => {
+    labelsGroup.hidden = !labelCapableClients.includes(clientSelect.value as ClientName);
+};
+
+const parseLabels = (value: string): string[] => {
+    const seen = new Set<string>();
+
+    return value
+        .split(",")
+        .map((label) => label.trim())
+        .filter((label) => {
+            if (label === "" || seen.has(label)) {
+                return false;
+            }
+
+            seen.add(label);
+            return true;
+        });
+};
+
 clientSelect.addEventListener("change", () => {
     updateUsernameInput();
+    updateLabelsInput();
 });
 
 const selectProfile = (profileId: number | undefined) => {
@@ -55,6 +79,8 @@ const selectProfile = (profileId: number | undefined) => {
         passwordInput.value = currentProfile.password;
         handleLeftClickCheckbox.checked = currentProfile.handleLeftClick;
         autostartCheckbox.checked = currentProfile.autostart;
+        // Profiles saved before labels existed have no such key in storage.
+        labelsInput.value = ((currentProfile.labels as string[] | undefined) ?? []).join(", ");
         testButton.disabled = false;
         removeButton.disabled = false;
     } else {
@@ -65,13 +91,15 @@ const selectProfile = (profileId: number | undefined) => {
         passwordInput.value = "";
         handleLeftClickCheckbox.checked = false;
         autostartCheckbox.checked = false;
+        labelsInput.value = "";
         testButton.disabled = true;
         removeButton.disabled = true;
     }
 
-    // Assigning clientSelect.value does not raise a change event, so the username state has to be
-    // brought along by hand on both paths.
+    // Assigning clientSelect.value does not raise a change event, so the username and labels
+    // state has to be brought along by hand on both paths.
     updateUsernameInput();
+    updateLabelsInput();
 };
 
 loadProfiles()
@@ -138,6 +166,9 @@ form.addEventListener("submit", (event) => {
         password: passwordInput.value,
         handleLeftClick: handleLeftClickCheckbox.checked,
         autostart: autostartCheckbox.checked,
+        labels: labelCapableClients.includes(clientSelect.value as ClientName)
+            ? parseLabels(labelsInput.value)
+            : [],
     };
 
     if (currentProfile) {
