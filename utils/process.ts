@@ -133,10 +133,8 @@ export const processUrl = async (
     url: string,
     referrer: string | undefined,
     profileId: number | undefined,
-    label?: string,
+    options: SendOptions,
 ): Promise<void> => {
-    const options: SendOptions = { label };
-
     if (url.startsWith("magnet:")) {
         return processMagnetUrl(url, profileId, options);
     }

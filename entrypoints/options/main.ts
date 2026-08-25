@@ -12,7 +12,6 @@ const passwordInput = document.querySelector("#password") as HTMLInputElement;
 const handleLeftClickCheckbox = document.querySelector("#handleLeftClick") as HTMLInputElement;
 const autostartCheckbox = document.querySelector("#autostart") as HTMLInputElement;
 const labelsInput = document.querySelector("#labels") as HTMLInputElement;
-const labelsGroup = document.querySelector("#labelsGroup") as HTMLDivElement;
 const testButton = document.querySelector("#test") as HTMLButtonElement;
 const removeButton = document.querySelector("#remove") as HTMLButtonElement;
 const passwordToggleButton = document.querySelector("#passwordToggle") as HTMLButtonElement;
@@ -30,8 +29,7 @@ const renderProfileOptions = () => {
 };
 
 const loadProfiles = async () => {
-    const storage = await browser.storage.local.get("profiles");
-    profiles = (storage.profiles ?? []) as Profile[];
+    profiles = await getProfiles();
     renderProfileOptions();
 };
 
@@ -40,7 +38,7 @@ const updateUsernameInput = () => {
 };
 
 const updateLabelsInput = () => {
-    labelsGroup.hidden = !labelCapableClients.includes(clientSelect.value as ClientName);
+    labelsInput.disabled = !labelCapableClients.includes(clientSelect.value as ClientName);
 };
 
 const parseLabels = (value: string): string[] => {
@@ -79,8 +77,7 @@ const selectProfile = (profileId: number | undefined) => {
         passwordInput.value = currentProfile.password;
         handleLeftClickCheckbox.checked = currentProfile.handleLeftClick;
         autostartCheckbox.checked = currentProfile.autostart;
-        // Profiles saved before labels existed have no such key in storage.
-        labelsInput.value = ((currentProfile.labels as string[] | undefined) ?? []).join(", ");
+        labelsInput.value = currentProfile.labels.join(", ");
         testButton.disabled = false;
         removeButton.disabled = false;
     } else {

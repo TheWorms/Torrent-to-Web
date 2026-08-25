@@ -36,14 +36,17 @@ const createContextMenu = async (): Promise<void> => {
             contexts: ["link"],
         });
 
-        profile.labels.forEach((label, index) => {
+        // The label travels in the id itself rather than an index into the profile, so the click
+        // handler never has to re-read storage and cannot resolve against a list that changed
+        // since the menu was built.
+        for (const label of profile.labels) {
             browser.contextMenus.create({
-                id: `${parentId}-label-${index}`,
+                id: `${parentId}-label-${encodeURIComponent(label)}`,
                 parentId,
                 title: label,
                 contexts: ["link"],
             });
-        });
+        }
     }
 };
 
@@ -55,7 +58,7 @@ const queueContextMenuUpdate = () => {
     contextMenuUpdate = contextMenuUpdate.then(createContextMenu).catch(handleUncaught);
 };
 
-const contextMenuIdRegexp = /^send-to-torrent-client-(\d+)(?:-nolabel|-label-(\d+))?$/;
+const contextMenuIdRegexp = /^send-to-torrent-client-(\d+)(?:-nolabel|-label-(.+))?$/;
 
 const legacyProfileSchema = z.object({
     nid: z.int().positive(),
@@ -96,30 +99,17 @@ export default defineBackground({
                 return;
             }
 
-            const [, profileIdText, labelIndexText] =
-                contextMenuIdRegexp.exec(info.menuItemId) ?? [];
+            const [, profileIdText, labelText] = contextMenuIdRegexp.exec(info.menuItemId) ?? [];
 
             if (profileIdText === undefined) {
                 return;
             }
 
-            const linkUrl = info.linkUrl;
             const profileId = Number.parseInt(profileIdText, 10);
             const referrer = info.frameUrl ?? info.pageUrl;
+            const label = labelText === undefined ? undefined : decodeURIComponent(labelText);
 
-            (async () => {
-                let label: string | undefined;
-
-                if (labelIndexText !== undefined) {
-                    const labelIndex = Number.parseInt(labelIndexText, 10);
-                    const profile = (await getProfiles()).find(
-                        (profile) => profile.id === profileId,
-                    );
-                    label = profile?.labels[labelIndex];
-                }
-
-                await processUrl(linkUrl, referrer, profileId, label);
-            })().catch(handleUncaught);
+            processUrl(info.linkUrl, referrer, profileId, { label }).catch(handleUncaught);
         });
 
         browser.runtime.onInstalled.addListener((details) => {
@@ -156,7 +146,7 @@ export default defineBackground({
 
         browser.runtime.onMessage.addListener((message: RuntimeMessage) => {
             if (message.magnetUrl) {
-                processUrl(message.magnetUrl, undefined, undefined).catch(handleUncaught);
+                processUrl(message.magnetUrl, undefined, undefined, {}).catch(handleUncaught);
             }
 
             if (message.test) {
@@ -168,7 +158,7 @@ export default defineBackground({
                     const testTorrent = await createTestTorrent();
 
                     try {
-                        await client.sendTorrent("test.torrent", testTorrent);
+                        await client.sendTorrent("test.torrent", testTorrent, {});
                     } catch (error) {
                         await notification.error("Error occurred when testing profile");
                         console.debug(

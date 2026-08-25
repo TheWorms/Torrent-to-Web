@@ -5,17 +5,15 @@ const loginPath = "/api/v2/auth/login";
 const addTorrentPath = "/api/v2/torrents/add";
 
 export class QBittorrent implements Client {
+    public static readonly supportsLabels = true;
+
     private readonly config: ClientConfig;
 
     public constructor(config: ClientConfig) {
         this.config = config;
     }
 
-    public async sendTorrent(
-        filename: string,
-        torrent: Blob,
-        options?: SendOptions,
-    ): Promise<void> {
+    public async sendTorrent(filename: string, torrent: Blob, options: SendOptions): Promise<void> {
         const formData = new FormData();
         formData.set("torrents", torrent, filename);
         this.applyCommonFields(formData, options);
@@ -23,7 +21,7 @@ export class QBittorrent implements Client {
         return this.sendRequest(formData);
     }
 
-    public async sendMagnetUrl(url: string, options?: SendOptions): Promise<void> {
+    public async sendMagnetUrl(url: string, options: SendOptions): Promise<void> {
         const formData = new FormData();
         formData.set("urls", `${url}\n`);
         this.applyCommonFields(formData, options);
@@ -31,12 +29,12 @@ export class QBittorrent implements Client {
         return this.sendRequest(formData);
     }
 
-    private applyCommonFields(formData: FormData, options?: SendOptions): void {
+    private applyCommonFields(formData: FormData, options: SendOptions): void {
         if (!this.config.autostart) {
             formData.set("paused", "true");
         }
 
-        if (options?.label) {
+        if (options.label !== undefined) {
             formData.set("category", options.label);
         }
     }
